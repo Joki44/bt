@@ -650,7 +650,7 @@ async def card_game(call:types.CallbackGame):
                     bet = table["players"][table["carts"]-1]['bet']
                     ccc = f"{PLAYING_CARDS_BTN_VALUE[player['cards'][0]]} {PLAYING_CARDS_BTN_VALUE[player['cards'][1]]} {PLAYING_CARDS_BTN_VALUE[player['cards'][2]]}"
                     msg = await bot.send_message(player['tele_id'],
-                        f"Вы выйграли этот кон \
+                        f"Вы выиграли этот кон \
                         \nВыберите ставку:",
                         reply_markup = InlineKeyboardMarkup().add(
                             InlineKeyboardButton(
@@ -1638,7 +1638,7 @@ async def quitOfTable(message: types.Message, state):
                                     bet = table["players"][table["carts"]-1]['bet']
                                     ccc = f"{PLAYING_CARDS_BTN_VALUE[player['cards'][0]]} {PLAYING_CARDS_BTN_VALUE[player['cards'][1]]} {PLAYING_CARDS_BTN_VALUE[player['cards'][2]]}"
                                     msg = await bot.send_message(player['tele_id'],
-                                        f"Вы выйграли этот кон \
+                                        f"Вы выиграли этот кон \
                                         \nВыберите ставку:",
                                         reply_markup = InlineKeyboardMarkup().add(
                                             InlineKeyboardButton(
@@ -2570,7 +2570,7 @@ async def timeIsUp(message, tableId, surplus_ceiling, carts, m):
                                             bet = table["players"][table["carts"]-1]['bet']
                                             ccc = f"{PLAYING_CARDS_BTN_VALUE[player['cards'][0]]} {PLAYING_CARDS_BTN_VALUE[player['cards'][1]]} {PLAYING_CARDS_BTN_VALUE[player['cards'][2]]}"
                                             msg = await bot.send_message(player['tele_id'],
-                                                f"Вы выйграли этот кон \
+                                                f"Вы выиграли этот кон \
                                                 \nВыберите ставку:",
                                                 reply_markup = InlineKeyboardMarkup().add(
                                                     InlineKeyboardButton(
@@ -3389,7 +3389,7 @@ async def quitOfGame(message: types.Message, state):
                                     bet = table["players"][table["carts"]-1]['bet']
                                     ccc = f"{PLAYING_CARDS_BTN_VALUE[player['cards'][0]]} {PLAYING_CARDS_BTN_VALUE[player['cards'][1]]} {PLAYING_CARDS_BTN_VALUE[player['cards'][2]]}"
                                     msg = await bot.send_message(player['tele_id'],
-                                        f"Вы выйграли этот кон \
+                                        f"Вы выиграли этот кон \
                                         \nВыберите ставку:",
                                         reply_markup = InlineKeyboardMarkup().add(
                                             InlineKeyboardButton(
