@@ -27,167 +27,175 @@ async def start(message: types.Message, state):
         find_user = f"SELECT * FROM users WHERE tele_id = {userId};"
         cursor.execute(find_user)
         candidate = cursor.fetchone()
+        
 
         if str(candidate) == 'None':
-
             add_user = f"INSERT INTO users (tele_id, tele_name, cash, chips, in_game, wins_all_time) VALUES ({userId}, '{message.from_user.username}', 0, 1000, {False}, 0)"
             cursor.execute(add_user)
             connection.commit()
+            find_user = f"SELECT * FROM users WHERE tele_id = {userId};"
+            cursor.execute(find_user)
+            candidate = cursor.fetchone()
 
+    if candidate['in_game'] != 1:
+        if " " in message.text:
+            info = message.text.split()[1]
+            if info.split('-')[0] == 'enter_game':
+                hostId = int(info.split('-')[1])
+                value_plaears = int(info.split('-')[2])
+                playersTeleId = []
+                async with state.proxy() as data:
+                    data['hostId'] = hostId
+                    data['value_plaears'] = value_plaears
+                    data['type'] = 0
+                players = games[hostId]['players']
+                for player in players:
+                    playersTeleId.append(player['tele_id'])
 
-    if " " in message.text:
-        info = message.text.split()[1]
-        if info.split('-')[0] == 'enter_game':
-            hostId = int(info.split('-')[1])
-            value_plaears = int(info.split('-')[2])
-            playersTeleId = []
-            async with state.proxy() as data:
-                data['hostId'] = hostId
-                data['value_plaears'] = value_plaears
-                data['type'] = 0
-            players = games[hostId]['players']
-            for player in players:
-                playersTeleId.append(player['tele_id'])
-
-            if(len(players) < value_plaears and userId not in playersTeleId):
-                await bot.send_message(message.from_user.id,
-                    "Присоединиться к игре", 
-                    reply_markup=InlineKeyboardMarkup().add(
-                        InlineKeyboardButton(
-                            text = "да",
-                            callback_data = f"join"
-                        ),
-                        InlineKeyboardButton(
-                            text = "нет", 
-                            callback_data = f"not_join"
-                        )
-                    ) 
-                )
-            
-            if(len(players) >= value_plaears):
-                await bot.send_message(message.from_user.id,
-                    "Комната уже заполнена"
-                    ) 
-
-
-            if(userId in playersTeleId):
-                await bot.send_message(message.from_user.id,
-                    "Вы уже находитесь в комнате"
-                    ) 
-        if info.split('-')[0] == 'enter_publick_game':
-            hostId = int(info.split('-')[1])
-            value_plaears = int(info.split('-')[2])
-            playersTeleId = []
-            async with state.proxy() as data:
-                data['hostId'] = hostId
-                data['value_plaears'] = value_plaears
-                data['type'] = 1
-            players = publickGames[hostId]['players']
-            table = publickGames[hostId]
-            for player in players:
-                playersTeleId.append(player['tele_id'])
-
-            if(len(players) < value_plaears and userId not in playersTeleId):
-                table["wontin"].append({
-                    'tele_id': userId,
-                    'chat_id': '',
-                    'message_id': '',
-                    'userNmae': '',
-                    'cards': [],
-                    'thrownCard': '',
-                    'bribe': 0,
-                    'bet': 0,
-                    'inGame':False,
-                    'inAzi': False,
-                    'azi': 0,
-                    'can_join': False,
-                })
-                
-                with connection.cursor() as cursor:
-                    requestDB = f"UPDATE users SET in_game = 1, table_id = '1-{hostId}' WHERE tele_id = {userId};"
-                    cursor.execute(requestDB)
-                    connection.commit() 
-                await bot.send_message(message.from_user.id,
-                    "Присоединиться к игре", 
-                    reply_markup=InlineKeyboardMarkup().add(
-                        InlineKeyboardButton(
-                            text = "да",
-                            callback_data = f"join"
-                        ),
-                        InlineKeyboardButton(
-                            text = "нет", 
-                            callback_data = f"not_join"
-                        )
-                    ) 
-                ) 
-                    
-                
-            
-            if(len(players) >= value_plaears):
-                await bot.send_message(message.from_user.id,
-                    "Комната уже заполнена"
-                    ) 
-
-
-            if(userId in playersTeleId):
-                await bot.send_message(message.from_user.id,
-                    "Вы уже находитесь в комнате"
-                    )     
-            
-        
-        
-        if info.split('-')[0] == 'add_friend':
-            friend_id = int(info.split('-')[1])
-            friend_name = info.split('-')[2]
-            
-            if friend_id != message.from_user.id:
-            
-                can_add = True
-                
-                with connection.cursor() as cursor:
-                    find_user = f"SELECT * FROM friends WHERE first_friend = {friend_id};"
-                    cursor.execute(find_user)
-                    friends = cursor.fetchall()
-                    print(candidate)
-                    for friend in friends:
-                        if friend['second_friend'] == message.from_user.id:
-                            can_add = False
-                            break
-                            
-                        
-                if can_add == True:
+                if(len(players) < value_plaears and userId not in playersTeleId):
                     await bot.send_message(message.from_user.id,
-                        f"Вы отправили запрос дружбы игроку {friend_name}" 
-                    )
-                    
-                    await bot.send_message(int(friend_id),
-                        "Вам отправил запрос дружбы " + message.from_user.username, 
+                        "Присоединиться к игре", 
                         reply_markup=InlineKeyboardMarkup().add(
                             InlineKeyboardButton(
-                                text = "принять",
-                                callback_data = f"append_friend|{message.from_user.id}"
+                                text = "да",
+                                callback_data = f"join"
                             ),
                             InlineKeyboardButton(
-                                text = "отклонить", 
-                                callback_data = f"disdain_friend|{message.from_user.id}"
+                                text = "нет", 
+                                callback_data = f"not_join"
                             )
-                        )        
+                        ) 
                     )
-                if can_add == False:
+                
+                if(len(players) >= value_plaears):
                     await bot.send_message(message.from_user.id,
-                        f"Игрок {friend_name} уже ваш друг" 
-                    )
+                        "Комната уже заполнена"
+                        ) 
+
+
+                if(userId in playersTeleId):
+                    await bot.send_message(message.from_user.id,
+                        "Вы уже находитесь в комнате"
+                        ) 
+            if info.split('-')[0] == 'enter_publick_game':
+                hostId = int(info.split('-')[1])
+                value_plaears = int(info.split('-')[2])
+                playersTeleId = []
+                async with state.proxy() as data:
+                    data['hostId'] = hostId
+                    data['value_plaears'] = value_plaears
+                    data['type'] = 1
+                players = publickGames[hostId]['players']
+                table = publickGames[hostId]
+                for player in players:
+                    playersTeleId.append(player['tele_id'])
+
+                if(len(players) < value_plaears and userId not in playersTeleId):
+                    table["wontin"].append({
+                        'tele_id': userId,
+                        'chat_id': '',
+                        'message_id': '',
+                        'userNmae': '',
+                        'cards': [],
+                        'thrownCard': '',
+                        'bribe': 0,
+                        'bet': 0,
+                        'inGame':False,
+                        'inAzi': False,
+                        'azi': 0,
+                        'can_join': False,
+                    })
                     
-            if friend_id == message.from_user.id:
-                await bot.send_message(message.from_user.id,
-                    f"Нельзя добавить самого себя в друзья" 
-                )
-             
-    else:
+                    with connection.cursor() as cursor:
+                        requestDB = f"UPDATE users SET in_game = 1, table_id = '1-{hostId}' WHERE tele_id = {userId};"
+                        cursor.execute(requestDB)
+                        connection.commit() 
+                    await bot.send_message(message.from_user.id,
+                        "Присоединиться к игре", 
+                        reply_markup=InlineKeyboardMarkup().add(
+                            InlineKeyboardButton(
+                                text = "да",
+                                callback_data = f"join"
+                            ),
+                            InlineKeyboardButton(
+                                text = "нет", 
+                                callback_data = f"not_join"
+                            )
+                        ) 
+                    ) 
+                        
+                    
+                
+                if(len(players) >= value_plaears):
+                    await bot.send_message(message.from_user.id,
+                        "Комната уже заполнена"
+                        ) 
+
+
+                if(userId in playersTeleId):
+                    await bot.send_message(message.from_user.id,
+                        "Вы уже находитесь в комнате"
+                        )     
+                
+            
+            
+            if info.split('-')[0] == 'add_friend':
+                friend_id = int(info.split('-')[1])
+                friend_name = info.split('-')[2]
+                
+                if friend_id != message.from_user.id:
+                
+                    can_add = True
+                    
+                    with connection.cursor() as cursor:
+                        find_user = f"SELECT * FROM friends WHERE first_friend = {friend_id};"
+                        cursor.execute(find_user)
+                        friends = cursor.fetchall()
+                        print(candidate)
+                        for friend in friends:
+                            if friend['second_friend'] == message.from_user.id:
+                                can_add = False
+                                break
+                                
+                            
+                    if can_add == True:
+                        await bot.send_message(message.from_user.id,
+                            f"Вы отправили запрос дружбы игроку {friend_name}" 
+                        )
+                        
+                        await bot.send_message(int(friend_id),
+                            "Вам отправил запрос дружбы " + message.from_user.username, 
+                            reply_markup=InlineKeyboardMarkup().add(
+                                InlineKeyboardButton(
+                                    text = "принять",
+                                    callback_data = f"append_friend|{message.from_user.id}"
+                                ),
+                                InlineKeyboardButton(
+                                    text = "отклонить", 
+                                    callback_data = f"disdain_friend|{message.from_user.id}"
+                                )
+                            )        
+                        )
+                    if can_add == False:
+                        await bot.send_message(message.from_user.id,
+                            f"Игрок {friend_name} уже ваш друг" 
+                        )
+                        
+                if friend_id == message.from_user.id:
+                    await bot.send_message(message.from_user.id,
+                        f"Нельзя добавить самого себя в друзья" 
+                    )
+                
+        else:
+            await bot.send_message(message.from_user.id,
+                f"Привет {message.from_user.first_name}",
+                reply_markup = mein_menu_markup
+            )
+    if candidate['in_game'] == 1:
         await bot.send_message(message.from_user.id,
-            f"Привет {message.from_user.first_name}",
-            reply_markup = mein_menu_markup
-        )
+                f"Вы находитись в игре, меню недоступно",
+                reply_markup = mein_menu_markup
+            )
  
  
  
@@ -246,6 +254,11 @@ async def join(call: types.callback_query, state):
     print(players)
     
     if(len(players) < value_plaears+1 and userId not in playersTeleId):
+        with connection.cursor() as cursor:
+            requestDB = f"UPDATE users SET in_game = 1, table_id = '0-{hostId}' WHERE tele_id = {call.from_user.id};"
+            cursor.execute(requestDB)
+            connection.commit()    
+    
         games[hostId]["wontin"].append({
             'tele_id': userId,
             'chat_id': call.message.chat.id,
@@ -273,7 +286,13 @@ async def join(call: types.callback_query, state):
                 if player['tele_id' ] == userId:
                     await bot.edit_message_text(chat_id=call.message.chat.id, 
                         message_id=call.message.message_id,
-                        text="Игра на фишки:\n" + playersNamws)
+                        text="Игра на фишки:\n" + playersNamws,
+                        reply_markup = InlineKeyboardMarkup().add(
+                                InlineKeyboardButton(
+                                    text = "Выйти из игры", 
+                                    callback_data = f"exit_from_game|0"
+                                )
+                            ))
 
                 if player['tele_id' ] == hostId:
                     await bot.edit_message_text(chat_id=player['chat_id'], 
@@ -296,7 +315,13 @@ async def join(call: types.callback_query, state):
                     await bot.edit_message_text(chat_id=player['chat_id'], 
                             message_id=player['message_id'],
                             text=f'Игра на фишки:\
-                                \n{playersNamws}'
+                                \n{playersNamws}',
+                            reply_markup = InlineKeyboardMarkup().add(
+                                InlineKeyboardButton(
+                                    text = "Выйти из игры", 
+                                    callback_data = f"exit_from_game|0"
+                                )
+                            )
                         )
         if games[hostId]["gameStarted"] == True:
             await bot.edit_message_text(chat_id=call.message.chat.id, 
@@ -318,6 +343,13 @@ async def cancel_the_game(call: types.callback_query, state):
     type = int(call.data.split('|')[1])
     async with state.proxy() as data:
         hostId = data['hostId']
+        
+    with connection.cursor() as cursor:
+        requestDB = f"UPDATE users SET in_game = 0 WHERE tele_id = {call.from_user.id};"
+        cursor.execute(requestDB)
+        connection.commit() 
+        
+        
     if type == 1:
         for player in publickGames[hostId]["players"]:
             await bot.edit_message_text(chat_id=player['chat_id'], 
@@ -334,7 +366,79 @@ async def cancel_the_game(call: types.callback_query, state):
                     text=f'Игра отменина'
             )
         del games[hostId]
+    print(publickGames)
+    
+    
+@dp.callback_query_handler(text_contains="exit_from_game") 
+async def cancel_the_game(call: types.callback_query, state):
+    type = int(call.data.split('|')[1])
+    async with state.proxy() as data:
+        hostId = data['hostId']
+    if type == 0:
+        table = games[hostId] 
+    if type == 1:
+        table = publickGames[hostId]
+        
+    for i, player in enumerate(table["wontin"]):
+        if player["tele_id"] == call.from_user.id:
+            table["wontin"].pop(i)
+            break
+
+    with connection.cursor() as cursor:
+        requestDB = f"UPDATE users SET in_game = 0 WHERE tele_id = {call.from_user.id};"
+        cursor.execute(requestDB)
+        connection.commit()
+        
+    
+    players = table['players'] + table['wontin']
+    print(players)
+    
+    if(len(players) > 1):
+        markup = InlineKeyboardMarkup().add(
+                        InlineKeyboardButton(
+                            text = "Старт",
+                            callback_data = f"start_game|"
+                        ),
+                        InlineKeyboardButton(
+                            text = "Отменить игру", 
+                            callback_data = f"cancel_the_game|{type}"
+                        )
+                    )
+    if(len(players) == 1):
+        markup = InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text = "Отменить игру", 
+                callback_data = f"cancel_the_game|{type}"
+            )
+        )
             
+    playersNamws = ""
+    for player in table["players"]:
+        playersNamws = playersNamws +  f"{str(player['userNmae'])} присоединился\n"
+    for player in table["players"]:
+        if player['tele_id' ] == hostId:
+            await bot.edit_message_text(chat_id=player['chat_id'], 
+                    message_id=player['message_id'],
+                    text=f'Создалась приватная игра ссылка для приглашения:\
+                        \nhttps://t.me/hwjgnjfdsxjfdibot?start=enter_game-{hostId}\
+                        \n\n{playersNamws}', 
+                    reply_markup = markup
+                )
+        if player['tele_id' ] != hostId and player['tele_id' ] != hostId:
+            await bot.edit_message_text(chat_id=player['chat_id'], 
+                    message_id=player['message_id'],
+                    text=f'Игра на фишки:\
+                        \n{playersNamws}',
+                    reply_markup = InlineKeyboardMarkup().add(
+                        InlineKeyboardButton(
+                            text = "Выйти из игры", 
+                            callback_data = f"exit_from_game|{type}"
+                        )
+                    )
+                )
+    await bot.edit_message_text(chat_id=call.message.chat.id, 
+        message_id=call.message.message_id,
+        text="Вы вышли из игры")
             
     
 @dp.callback_query_handler(text_contains="abolition")

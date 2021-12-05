@@ -5,5 +5,7 @@ def check_equalities (players):
     for player in players:
         if first_player_bet != player['bet']:
             equal = False
-    
+    if equal == True:
+        if first_player_bet == 0:
+            equal = False
     return equal

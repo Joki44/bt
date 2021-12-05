@@ -114,9 +114,5 @@ create_public_table_markup = InlineKeyboardMarkup().add(
     InlineKeyboardButton(
         text = "Старт",
         callback_data = f"create_public_table|"
-    ),
-    InlineKeyboardButton(
-        text = "Отменить игру", 
-        callback_data = f"cancel_the_game|1"
     )
 )

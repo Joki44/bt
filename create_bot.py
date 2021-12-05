@@ -42,7 +42,7 @@ try:
     
     try:
         with connection.cursor() as cursor:
-            create = "CREATE TABLE payment (id int AUTO_INCREMENT, tele_id int, chips boolean, value int, order_id int, PRIMARY KEY (id));"
+            create = "CREATE TABLE payments (id int AUTO_INCREMENT, tele_id int, chips boolean, value int, order_id int, PRIMARY KEY (id));"
             cursor.execute(create)
     except Exception as ex:
         print(ex)

@@ -9,10 +9,20 @@ from keyboards.create_game import start_game_markup, tables_markup, create_priva
 
 # @dp.callback_query_handler(text_contains="start_game")
 async def create_game(message: types.Message):
-    await bot.send_message(message.from_user.id,
-        "Выберети варинант игры", 
-        reply_markup = start_game_markup
-    )
+    userId = message.from_user.id
+    with connection.cursor() as cursor:
+        find_user = f"SELECT * FROM users WHERE tele_id = {userId};"
+        cursor.execute(find_user)
+        candidate = cursor.fetchone()
+    if candidate['in_game'] != 1:
+        await bot.send_message(message.from_user.id,
+            "Выберети варинант игры", 
+            reply_markup = start_game_markup
+        )
+    if candidate['in_game'] == 1:
+        await bot.send_message(message.from_user.id,
+            "Вы уже находитесь в игре"
+        )
 
 
 # @dp.callback_query_handler(text_contains = "chips")
@@ -72,7 +82,7 @@ async def create_private_table(call: types.CallbackQuery, state):
                 'userNmae': call.from_user.username,        # username игрока
                 'cards': [],                                # карты игрока
                 'thrownCard': '',                           # выкинутая карта
-                'bribe': 0,                                 # выйграннаые взятки
+                'bribe': 0,                                 # выиграннаые взятки
                 'bet': 0,                                   # ставка игрока
                 'inGame': True,                             # участвует ли игрок в игре
                 'inAzi': False,                             # участвует ли игрок в ази
@@ -133,7 +143,7 @@ async def create_public_table(call: types.CallbackQuery, state):
                 'userNmae': call.from_user.username,        # username игрока
                 'cards': [],                                # карты игрока
                 'thrownCard': '',                           # выкинутая карта
-                'bribe': 0,                                 # выйграннаые взятки
+                'bribe': 0,                                 # выиграннаые взятки
                 'bet': 0,                                   # ставка игрока
                 'inGame': True,                             # участвует ли игрок в игре
                 'inAzi': False,                             # участвует ли игрок в ази
@@ -217,7 +227,13 @@ async def join_room(call: types.CallbackQuery, state):
                     if player['tele_id' ] == userId:
                         await bot.edit_message_text(chat_id=call.message.chat.id, 
                             message_id=call.message.message_id,
-                            text="Игра на фишки:\n" + playersNamws)
+                            text="Игра на фишки:\n" + playersNamws,
+                            reply_markup = InlineKeyboardMarkup().add(
+                                InlineKeyboardButton(
+                                    text = "Выйти из игры", 
+                                    callback_data = f"exit_from_game|1"
+                                )
+                            ))
 
                     if player['tele_id' ] == hostId:
                         await bot.edit_message_text(chat_id=player['chat_id'], 
@@ -239,7 +255,13 @@ async def join_room(call: types.CallbackQuery, state):
                         await bot.edit_message_text(chat_id=player['chat_id'], 
                                 message_id=player['message_id'],
                                 text=f'Игра на фишки:\
-                                    \n{playersNamws}'
+                                    \n{playersNamws}',
+                                reply_markup = InlineKeyboardMarkup().add(
+                                InlineKeyboardButton(
+                                    text = "Выйти из игры", 
+                                    callback_data = f"exit_from_game|1"
+                                )
+                            )
                             )
         if table["gameStarted"] == True:
             await bot.edit_message_text(chat_id=call.message.chat.id, 
